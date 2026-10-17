@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Matchup Graphics</title>
+<style>
+:root{--bg:#070b07;--pan:#10170f;--pan2:#162013;--bd:#2c3b25;--tx:#f6f2e2;--mut:#9fa890;--ac:#fed100;--gr:#009b3a;--ok:#2fe071;--bad:#ff5a4f;--hd:Impact,Haettenschweiler,"Arial Narrow Bold","Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 "Segoe UI",system-ui,sans-serif;min-height:100vh}
+header{padding:22px 28px 16px;border-bottom:3px solid var(--gr);background:var(--pan2)}
+h1{margin:0;font:400 36px/1 var(--hd);letter-spacing:2px;text-transform:uppercase;color:var(--ac);text-shadow:2px 2px 0 #000}
+h1 small{display:block;font:600 12px "Segoe UI",system-ui,sans-serif;letter-spacing:3px;color:var(--ok);margin-top:7px;text-shadow:none}
+main{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:20px;padding:22px 28px 60px;align-items:start}
+@media(max-width:980px){main{grid-template-columns:1fr}}
+h2{margin:0 0 14px;font:400 21px var(--hd);letter-spacing:1.5px;text-transform:uppercase;border-left:5px solid var(--ac);padding-left:10px}
+.card{background:var(--pan);border:1px solid var(--bd);border-top:3px solid var(--gr);border-radius:4px;padding:18px;margin-bottom:20px}
+label{display:block;font-size:12px;color:var(--mut);margin:12px 0 5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+label:first-child{margin-top:0}
+input,select,textarea{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:10px 11px;font:inherit}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.btn{background:var(--ac);color:var(--onac,#1c1700);border:0;padding:11px 24px;font:800 13px "Segoe UI",system-ui,sans-serif;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.btn.sec{background:var(--bd);color:var(--tx)}
+.x{background:none;border:1px solid var(--bd);color:var(--bad);border-radius:3px;cursor:pointer;padding:4px 9px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.mut{color:var(--mut);font-size:14px}
+.mrow{display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;padding:8px;border:1px solid var(--bd);border-left:4px solid var(--bd);border-radius:4px;margin-bottom:8px}
+.mrow.on{border-left-color:var(--ac);background:var(--pan2)}
+.mrow .vs{font:400 16px var(--hd);color:var(--ac)}
+.mrow .lab{grid-column:1/4}
+.chk{border:1px solid var(--bd);border-radius:4px;overflow:hidden;background:conic-gradient(#2a2f28 25%,#1c211b 0 50%,#2a2f28 0 75%,#1c211b 0) 0 0/28px 28px}
+.chk canvas{display:block;width:100%;height:auto}
+#toast-x{}
+.by{font:700 15px "Segoe UI",system-ui,sans-serif;letter-spacing:2px;color:var(--ok);margin-left:12px;text-shadow:none}
+[hidden]{display:none!important}
+#tabs{display:flex;gap:4px;padding:14px 28px 0;flex-wrap:wrap;background:var(--pan2)}
+#tabs button{background:var(--pan);color:var(--mut);border:0;border-bottom:3px solid transparent;padding:10px 18px;font:800 13px "Segoe UI",system-ui,sans-serif;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer}
+#tabs button.on{background:var(--bg);color:var(--ac);border-bottom-color:var(--ac)}
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.ft{cursor:pointer;border:1px solid var(--bd);border-top:3px solid var(--gr);border-radius:4px;overflow:hidden;background:var(--bg)}
+.ft:hover{border-color:var(--ac)}
+.fb{aspect-ratio:1;background:#0d130c center 25%/cover no-repeat;display:grid;place-items:center}
+.fb span{font:400 26px var(--hd);color:var(--bd)}
+.fnm{padding:4px;text-align:center;font:400 13px var(--hd);letter-spacing:.5px;text-transform:uppercase;background:rgba(0,0,0,.6);border-top:2px solid var(--ac);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ok);color:#06150c;padding:12px 22px;border-radius:4px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+</style></head>
+<body>
+<header><h1>Matchup Graphics<span class="by">by TAIT-SAMA</span><small>PNG CARDS FOR ANY EVENT</small></h1></header>
+<div id="tabs"></div>
+<main>
+  <div>
+    <div class="card"><h2>Event</h2>
+      <label for="th">Theme</label><select id="th" onchange="setTheme(this.value)"><option value="jam">Jamaican (black, green, gold)</option><option value="mk">MK (red &amp; black)</option><option value="basic">Basic (blue &amp; slate)</option></select>
+      <label for="t">Title</label><input id="t" oninput="set('title',this.value)">
+      <label for="s">Default subtitle (round, week, etc.)</label><input id="s" oninput="set('sub',this.value)">
+      <label for="f">Footer (where to watch, optional)</label><input id="f" oninput="set('footer',this.value)">
+      <div id="layw"><label for="lay">Layout</label>
+      <select id="lay" onchange="set('layout',this.value)"><option value="full">Single matchup 1920×1080</option><option value="sched">Schedule 1920×1080 (up to 5 matchups per image)</option><option value="banner">Banner strip 1920×300</option></select></div>
+      <label for="bgm">Background</label>
+      <select id="bgm" onchange="set('bg',this.value)"><option value="transparent">Transparent (for video overlays)</option><option value="flag">Themed pattern</option><option value="dark">Solid dark</option></select>
+    </div>
+    <div id="tab-cards">
+    <div class="card"><h2>Faces (optional)</h2><p class="mut" style="margin-top:0">Click a name to add that player's character image. Saved in this browser only. If anyone in an image has a face, the others show their initials.</p>
+      <div id="faces" class="fg"></div><input type="file" id="face-in" accept="image/*" hidden onchange="setFace(this)">
+      <div class="row" style="margin-top:12px"><button class="x" onclick="if(confirm('Remove all saved face images?')){localStorage.removeItem('mu_faces');facesUI();redraw()}">Remove all faces</button></div></div>
+    <div class="card"><h2>Matchups</h2>
+      <div id="list"></div>
+      <div class="row"><button class="btn sec" onclick="addRow()">Add matchup</button></div>
+      <label for="bulk">Paste many (one per line: Name vs Name)</label>
+      <textarea id="bulk" rows="4" placeholder="Kemar vs Shanice&#10;Jon vs Bob"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn sec" onclick="bulkAdd()">Add lines</button></div>
+      <label for="pl">Or list players (one per line) to make every pairing</label>
+      <textarea id="pl" rows="4" placeholder="Kemar&#10;Shanice&#10;Jon&#10;Bob"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn sec" onclick="allPairs()">Add all pairings</button><button class="x" onclick="if(confirm('Remove all matchups?')){S.list=[];sel=0;save();ui()}">Clear all</button></div>
+    </div></div>
+    <div id="tab-big" hidden>
+    <div class="card"><h2>Big card</h2>
+      <label for="ba">Player A</label><input id="ba" oninput="setBig('a',this.value)" onchange="bigFaces()">
+      <label for="bb">Player B</label><input id="bb" oninput="setBig('b',this.value)" onchange="bigFaces()">
+      <label for="bl">Tagline (round, format, etc.)</label><input id="bl" oninput="setBig('l',this.value)">
+      <label>Face images (optional, click to set)</label><div id="bfaces" class="fg" style="max-width:260px"></div>
+      <div class="row" style="margin-top:14px"><button class="btn sec" onclick="fromRow()">Use selected matchup</button><button class="btn sec" onclick="swapBig()">Swap sides</button></div>
+    </div></div>
+    <div id="tab-win" hidden>
+    <div class="card"><h2>Winner card</h2>
+      <label for="wn">Winner</label><input id="wn" oninput="setWin('name',this.value)" onchange="winFaces()">
+      <label for="wo">Opponent (optional)</label><input id="wo" oninput="setWin('opp',this.value)">
+      <label for="ws">Score (optional, e.g. 3-1)</label><input id="ws" oninput="setWin('score',this.value)">
+      <label for="wlb">Headline</label><input id="wlb" oninput="setWin('label',this.value)">
+      <label for="wl">Extra line (optional)</label><input id="wl" oninput="setWin('l',this.value)">
+      <label>Face image (optional, click to set)</label><div id="wfaces" class="fg" style="max-width:130px"></div>
+      <label>Fill from the selected matchup</label>
+      <div class="row"><button class="btn sec" onclick="winFrom('a')">Player A won</button><button class="btn sec" onclick="winFrom('b')">Player B won</button></div>
+    </div></div>
+  </div>
+  <div>
+    <div class="card"><h2>Preview</h2>
+      <p id="pg" class="mut" style="margin:0 0 10px"></p>
+      <div class="chk"><canvas id="cv"></canvas></div>
+      <p class="mut" id="pnote"></p>
+      <div class="row"><button class="btn" onclick="dlCur()">Download this PNG</button><button class="btn sec" id="dlall" onclick="dlAll()">Download all PNGs</button></div>
+    </div>
+  </div>
+</main>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dflt=()=>({title:'Tait-Sama League',sub:'Season 1 · Jamaica',footer:'twitch.tv/tait_sama',layout:'full',bg:'transparent',theme:'jam',tab:'cards',big:{a:'Player One',b:'Player Two',l:'First to 3'},win:{name:'Player One',opp:'Player Two',score:'3-1',label:'WINNER',l:''},list:[{a:'Player One',b:'Player Two',l:''}]});
+function load(){try{const j=JSON.parse(localStorage.getItem('mu_state'));if(j&&j.list)return Object.assign(dflt(),j)}catch(e){}return dflt()}
+let S=load(),sel=0;
+function save(){try{localStorage.setItem('mu_state',JSON.stringify(S))}catch(e){}}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2500)}
+
+/* ---------- themes ---------- */
+const THEMES={
+ jam:{bg:'#070b07',pan:'#10170f',pan2:'#162013',bd:'#2c3b25',tx:'#f6f2e2',mut:'#9fa890',a:'#fed100',ti:'#fed100',b:'#009b3a',ok:'#2fe071',on:'#1c1700',hd:'Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif'},
+ mk:{bg:'#080404',pan:'#140a0a',pan2:'#1c0e0e',bd:'#3d1a1a',tx:'#f2e8e2',mut:'#a68f88',a:'#e5191f',ti:'#f5ece6',b:'#6e0a0e',ok:'#ff7a5c',on:'#ffffff',hd:'Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif'},
+ basic:{bg:'#0e1117',pan:'#171b24',pan2:'#1d2330',bd:'#2c3445',tx:'#eef1f6',mut:'#8e99ad',a:'#4da3ff',ti:'#f4f7fb',b:'#8a96ad',ok:'#7bdcb5',on:'#04121f',hd:'"Arial Black","Segoe UI",Arial,sans-serif'}
+};
+const T=()=>THEMES[S.theme]||THEMES.jam;
+function applyTheme(){const t=T(),r=document.documentElement.style;
+  [['--bg',t.bg],['--pan',t.pan],['--pan2',t.pan2],['--bd',t.bd],['--tx',t.tx],['--mut',t.mut],['--ac',t.a],['--gr',t.b],['--ok',t.ok],['--onac',t.on],['--hd',t.hd]].forEach(([k,v])=>r.setProperty(k,v))}
+function setTheme(v){S.theme=v;save();applyTheme();redraw()}
+
+/* ---------- drawing ---------- */
+const W=1920,PER=5,FT='"Segoe UI",Arial,sans-serif';
+const fkey=n=>(n||'').trim().toLowerCase();
+function facesLib(){try{return JSON.parse(localStorage.getItem('mu_faces'))||{}}catch(e){return{}}}
+const imgCache={};
+const loadImg=src=>new Promise(r=>{if(!src)return r(null);if(imgCache[src])return r(imgCache[src]);const i=new Image();i.onload=()=>r(imgCache[src]=i);i.onerror=()=>r(null);i.src=src});
+function cover(x,img,dx,dy,dw,dh){const r=Math.max(dw/img.width,dh/img.height),w=img.width*r,h=img.height*r;x.save();x.beginPath();x.rect(dx,dy,dw,dh);x.clip();x.drawImage(img,dx+(dw-w)/2,dy+(dh-h)*.25,w,h);x.restore()}
+function flag(x,x0,y0,w,h){
+  x.fillStyle='#009b3a';x.fillRect(x0,y0,w,h);x.fillStyle='#000';
+  x.beginPath();x.moveTo(x0,y0);x.lineTo(x0+w,y0);x.lineTo(x0+w/2,y0+h/2);x.fill();
+  x.beginPath();x.moveTo(x0,y0+h);x.lineTo(x0+w,y0+h);x.lineTo(x0+w/2,y0+h/2);x.fill();
+  x.strokeStyle='#fed100';x.lineWidth=h*.16;x.beginPath();x.moveTo(x0,y0);x.lineTo(x0+w,y0+h);x.moveTo(x0+w,y0);x.lineTo(x0,y0+h);x.stroke();
+}
+function outlined(x,t,px,py,size,font,fill,stroke,sw){x.font=size+'px '+font;x.lineJoin='round';x.lineWidth=sw;x.strokeStyle=stroke;x.strokeText(t,px,py);x.fillStyle=fill;x.fillText(t,px,py)}
+function fit(x,t,maxW,size,font){let z=size;x.font=z+'px '+font;while(x.measureText(t).width>maxW&&z>16){z-=2;x.font=z+'px '+font}return z}
+function hex(x,cx,cy,r){x.beginPath();for(let i=0;i<6;i++){const a=Math.PI/3*i-Math.PI/2;x[i?'lineTo':'moveTo'](cx+r*Math.cos(a),cy+r*Math.sin(a))}x.closePath()}
+function para(x,px,y0,w,h,s){x.beginPath();x.moveTo(px+s,y0);x.lineTo(px+w+s,y0);x.lineTo(px+w,y0+h);x.lineTo(px,y0+h);x.closePath()}
+function patt(x,H){const C=T();x.fillStyle=C.bg;x.fillRect(0,0,W,H);
+  if(S.theme==='jam'){x.save();x.globalAlpha=.25;flag(x,0,0,W,H);x.restore()}
+  else if(S.theme==='mk'){x.save();x.lineWidth=H*.14;[[C.b,.5,0],[C.a,.16,90]].forEach(([c,al,o])=>{x.globalAlpha=al;x.strokeStyle=c;for(let i=-1;i<6;i++){x.beginPath();x.moveTo(i*W/4+o,H+40);x.lineTo(i*W/4+W/5+o,-40);x.stroke()}});x.restore()}
+  else{const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,C.pan2);g.addColorStop(1,C.bg);x.fillStyle=g;x.fillRect(0,0,W,H)}}
+function badge(x,cx,cy,R){const C=T();hex(x,cx,cy,R+10);x.fillStyle='#000';x.fill();
+  x.save();hex(x,cx,cy,R);x.clip();
+  if(S.theme==='jam')flag(x,cx-R,cy-R,R*2,R*2);
+  else{const g=x.createLinearGradient(cx-R,cy-R,cx+R,cy+R);g.addColorStop(0,C.b);g.addColorStop(1,C.a);x.fillStyle=g;x.fillRect(cx-R,cy-R,R*2,R*2);
+    if(S.theme==='mk'){x.strokeStyle='rgba(0,0,0,.55)';x.lineWidth=R*.28;x.beginPath();x.moveTo(cx-R,cy+R);x.lineTo(cx+R,cy-R);x.stroke()}}
+  x.restore();hex(x,cx,cy,R);x.lineWidth=Math.max(5,R*.06);x.strokeStyle=S.theme==='jam'?C.a:C.tx;x.stroke();
+  outlined(x,'VS',cx,cy+R*.03,R*.98,C.hd,'#fff','#000',Math.max(8,R*.1))}
+function head(x,title,sub,ty,ts,sy,ss){const C=T();
+  if(title)outlined(x,title.toUpperCase(),W/2,ty,ts,C.hd,C.ti,'#000',ts*.12);
+  if(sub){try{x.letterSpacing='7px'}catch(e){}outlined(x,sub.toUpperCase(),W/2,sy,ss,FT,C.ok,'#000',ss*.22);try{x.letterSpacing='0px'}catch(e){}}}
+function foot(x,H,fs,fy){const f=(S.footer||'').trim();if(!f)return;const C=T();x.textAlign='center';x.font='700 '+fs+'px '+FT;const tw=x.measureText(f).width+56;
+  x.fillStyle='rgba(0,0,0,.7)';x.fillRect(W/2-tw/2,fy-fs*.85,tw,fs*1.7);x.fillStyle=C.b;x.fillRect(W/2-tw/2,fy-fs*.85,tw,4);
+  x.fillStyle=C.tx;x.fillText(f,W/2,fy+2)}
+function faceBox(x,fx,fy,w,h,im,nm,bw){const C=T();x.fillStyle=C.pan;x.fillRect(fx,fy,w,h);
+  if(im)cover(x,im,fx,fy,w,h);else{x.fillStyle=C.bd;x.font=`${Math.min(w,h)*.4}px ${C.hd}`;x.fillText(nm.slice(0,2),fx+w/2,fy+h/2+3)}
+  x.lineWidth=bw||4;x.strokeStyle=C.a;x.strokeRect(fx,fy,w,h)}
+function rowDraw(x,cy,h,R,A,B,imA,imB,useF){
+  const C=T(),y0=cy-h/2,y1=cy+h/2,s=h*.24,mg=60,px=mg+(useF?h:0),pw=W/2-R*.62-s-px;
+  if(useF){faceBox(x,mg,y0,h,h,imA,A);faceBox(x,W-mg-h,y0,h,h,imB,B)}
+  [[px,A,C.b,C.a],[W-px-pw-s,B,C.a,C.b]].forEach(([p0,name,top,bot])=>{
+    para(x,p0,y0,pw,h,s);x.fillStyle='rgba(0,0,0,.74)';x.fill();
+    x.lineWidth=2;x.strokeStyle='rgba(255,255,255,.18)';x.stroke();
+    x.lineWidth=Math.max(6,h*.036);x.lineCap='butt';
+    x.strokeStyle=top;x.beginPath();x.moveTo(p0+s,y0+2);x.lineTo(p0+pw+s,y0+2);x.stroke();
+    x.strokeStyle=bot;x.beginPath();x.moveTo(p0,y1-2);x.lineTo(p0+pw,y1-2);x.stroke();
+    const z=fit(x,name,pw-s-70,h*.46,C.hd);
+    outlined(x,name,p0+pw/2+s/2,cy+3,z,C.hd,C.tx,'#000',Math.max(6,h*.04));
+  });
+  badge(x,W/2,cy,R);
+}
+async function draw(c,items,pg,np){
+  const lay=S.layout,H=lay==='banner'?300:1080,F=facesLib(),C=T();
+  const imA=await Promise.all(items.map(m=>loadImg(F[fkey(m.a)]))),imB=await Promise.all(items.map(m=>loadImg(F[fkey(m.b)])));
+  const useF=[...imA,...imB].some(Boolean);
+  c.width=W;c.height=H;
+  const x=c.getContext('2d');x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
+  if(S.bg!=='transparent')patt(x,H);
+  const title=(S.title||'').trim(),dsub=(S.sub||'').trim(),m0=items[0];
+  const sub=lay==='sched'?dsub:((m0.l||'').trim()||dsub);
+  const rows=[];
+  if(lay==='full'){head(x,title,sub,150,100,235,36);rows.push({cy:600,h:250})}
+  else if(lay==='banner'){
+    const t=[title,sub].filter(Boolean).join('  ·  ').toUpperCase();
+    if(t)outlined(x,t,W/2,34,32,C.hd,C.ti,'#000',8);
+    rows.push({cy:172,h:170});
+  }else{
+    head(x,title,sub,62,74,120,28);
+    if(np>1){x.textAlign='right';outlined(x,pg+1+' / '+np,W-60,62,34,C.hd,C.tx,'#000',8);x.textAlign='center'}
+    const n=items.length,h=150,gap=22,tot=n*h+(n-1)*gap,y0=165+(840-tot)/2;
+    for(let i=0;i<n;i++)rows.push({cy:y0+h/2+i*(h+gap),h});
+  }
+  rows.forEach((r,i)=>{
+    const m=items[i],A=(m.a||'').trim().toUpperCase()||'PLAYER 1',B=(m.b||'').trim().toUpperCase()||'PLAYER 2';
+    rowDraw(x,r.cy,r.h,r.h*(lay==='sched'?.44:.54),A,B,imA[i],imB[i],useF);
+  });
+  if(lay!=='banner'){const big=lay==='full';foot(x,H,big?34:26,H-(big?56:36))}
+}
+async function drawBig(c,b){
+  const C=T(),F=facesLib(),H=1080,A=(b.a||'').trim().toUpperCase()||'PLAYER A',B=(b.b||'').trim().toUpperCase()||'PLAYER B',tag=(b.l||'').trim().toUpperCase();
+  const [ia,ib]=await Promise.all([loadImg(F[fkey(b.a)]),loadImg(F[fkey(b.b)])]);
+  c.width=W;c.height=H;const x=c.getContext('2d');x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
+  if(S.bg!=='transparent')patt(x,H);
+  head(x,(S.title||'').trim(),(S.sub||'').trim(),82,74,142,28);
+  if(ia||ib){
+    const fw=520,fh=640,fy=200;
+    [[150,ia,A,C.b,C.a],[W-150-fw,ib,B,C.a,C.b]].forEach(([fx,im,nm,top,bot])=>{
+      faceBox(x,fx,fy,fw,fh,im,nm,8);
+      const pw=640,s=28,px=fx-60,py=fy+fh+22,ph=112;
+      para(x,px,py,pw,ph,s);x.fillStyle='rgba(0,0,0,.78)';x.fill();
+      x.lineWidth=8;x.strokeStyle=top;x.beginPath();x.moveTo(px+s,py+3);x.lineTo(px+pw+s,py+3);x.stroke();
+      x.strokeStyle=bot;x.beginPath();x.moveTo(px,py+ph-3);x.lineTo(px+pw,py+ph-3);x.stroke();
+      outlined(x,nm,px+pw/2+s/2,py+ph/2+3,fit(x,nm,pw-s-60,70,C.hd),C.hd,C.tx,'#000',7);
+    });
+    badge(x,W/2,fy+fh/2,185);
+    if(tag){const z=fit(x,tag,540,50,C.hd);outlined(x,tag,W/2,fy+fh/2+185+70,z,C.hd,C.ok,'#000',8)}
+  }else{
+    rowDraw(x,540,300,165,A,B,null,null,false);
+    if(tag){const z=fit(x,tag,1400,64,C.hd);outlined(x,tag,W/2,540+150+95,z,C.hd,C.ok,'#000',9)}
+  }
+  foot(x,H,28,H-36);
+}
+async function drawWin(c,w){
+  const C=T(),F=facesLib(),H=1080,nm=(w.name||'').trim().toUpperCase()||'WINNER NAME',im=await loadImg(F[fkey(w.name)]);
+  const label=(w.label||'WINNER').trim().toUpperCase(),opp=(w.opp||'').trim().toUpperCase(),sc=(w.score||'').trim().replace(/-/g,'–'),ex=(w.l||'').trim().toUpperCase();
+  c.width=W;c.height=H;const x=c.getContext('2d');x.clearRect(0,0,W,H);x.textAlign='center';x.textBaseline='middle';
+  if(S.bg!=='transparent')patt(x,H);
+  head(x,(S.title||'').trim(),(S.sub||'').trim(),64,58,116,24);
+  const hasF=!!im,tx=hasF?1290:W/2,tw=hasF?1000:1500;
+  if(hasF)faceBox(x,140,190,624,780,im,nm,10);
+  outlined(x,label,tx,320,fit(x,label,tw,210,C.hd),C.hd,C.a,'#000',18);
+  const ph=180,py=395,px=tx-tw/2,s=40;
+  para(x,px,py,tw-s,ph,s);x.fillStyle='rgba(0,0,0,.78)';x.fill();
+  x.lineWidth=9;x.strokeStyle=C.b;x.beginPath();x.moveTo(px+s,py+4);x.lineTo(px+tw,py+4);x.stroke();
+  x.strokeStyle=C.a;x.beginPath();x.moveTo(px,py+ph-4);x.lineTo(px+tw-s,py+ph-4);x.stroke();
+  outlined(x,nm,px+(tw)/2,py+ph/2+4,fit(x,nm,tw-s-90,140,C.hd),C.hd,C.tx,'#000',12);
+  let y=690;
+  if(sc){outlined(x,sc,tx,y,130,C.hd,C.a,'#000',14);y+=105}
+  if(opp){outlined(x,'DEF. '+opp,tx,y,fit(x,'DEF. '+opp,tw,54,C.hd),C.hd,C.tx,'#000',8);y+=80}
+  if(ex)outlined(x,ex,tx,y,fit(x,ex,tw,40,FT),FT,C.ok,'#000',7);
+  foot(x,H,28,H-36);
+}
+function pages(){return S.layout==='sched'?Array.from({length:Math.ceil(S.list.length/PER)},(_,i)=>S.list.slice(i*PER,i*PER+PER)):S.list.map(m=>[m])}
+function curPage(){return S.layout==='sched'?Math.floor(sel/PER):sel}
+let seq=0;
+async function redraw(){
+  const my=++seq,t=document.createElement('canvas');let cap='',note='';
+  if(S.tab==='big'){await drawBig(t,S.big);cap='Big card · 1920×1080';note='Good for an intro or an on-screen display. The checkerboard shows transparent areas.'}
+  else if(S.tab==='win'){await drawWin(t,S.win);cap='Winner card · 1920×1080';note='Good for the end of a set. The checkerboard shows transparent areas.'}
+  else{
+    const ps=pages(),pg=Math.min(curPage(),Math.max(0,ps.length-1));
+    await draw(t,ps.length?ps[pg]:[{a:'',b:'',l:''}],pg,ps.length);
+    cap=ps.length?`Image ${pg+1} of ${ps.length}`+(S.layout==='sched'?` · ${ps[pg].length} matchup${ps[pg].length>1?'s':''} on this image (max ${PER})`:''):'Add a matchup to see a preview';
+    note='The checkerboard shows transparent areas. Click a matchup to preview it.';
+  }
+  if(my!==seq)return;
+  const cv=$('#cv');cv.width=t.width;cv.height=t.height;cv.getContext('2d').drawImage(t,0,0);
+  $('#pg').textContent=cap;$('#pnote').textContent=note;
+}
+
+/* ---------- downloads ---------- */
+const slug=s=>(s||'x').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'x';
+function savePNG(c,name){return new Promise(r=>c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);r()},'image/png'))}
+async function dl(i){const ps=pages(),it=ps[i];if(!it)return toast('Add a matchup first');
+  const c=document.createElement('canvas');await draw(c,it,i,ps.length);
+  await savePNG(c,S.layout==='sched'?`schedule-${String(i+1).padStart(2,'0')}.png`:`matchup-${String(i+1).padStart(2,'0')}-${slug(it[0].a)}-vs-${slug(it[0].b)}.png`)}
+async function dlCur(){
+  if(S.tab==='big'){const c=document.createElement('canvas');await drawBig(c,S.big);return savePNG(c,`big-card-${slug(S.big.a)}-vs-${slug(S.big.b)}.png`)}
+  if(S.tab==='win'){const c=document.createElement('canvas');await drawWin(c,S.win);return savePNG(c,`winner-${slug(S.win.name)}.png`)}
+  return dl(curPage())}
+async function dlAll(){const n=pages().length;if(!n)return toast('Add a matchup first');
+  if(n>8&&!confirm('Download '+n+' PNG files? Your browser may ask to allow multiple downloads.'))return;
+  for(let i=0;i<n;i++){await dl(i);await new Promise(r=>setTimeout(r,350))}toast('Downloaded '+n+' PNG'+(n>1?'s':''))}
+
+/* ---------- faces ---------- */
+function facesUI(){
+  const F=facesLib(),ns=[],seen=new Set();
+  S.list.forEach(m=>[m.a,m.b].forEach(n=>{n=(n||'').trim();if(n&&!seen.has(fkey(n))){seen.add(fkey(n));ns.push(n)}}));
+  window._fn=ns;
+  $('#faces').innerHTML=ns.length?ns.map((n,i)=>{const f=F[fkey(n)];return `<div class="ft" onclick="pickFace(${i})" title="Click to set image"><div class="fb" style="${f?`background-image:url('${f}')`:''}">${f?'':'<span>'+esc(n.slice(0,2).toUpperCase())+'</span>'}</div><div class="fnm">${esc(n)}</div></div>`}).join(''):'<p class="mut" style="grid-column:1/-1;margin:0">Add matchups first.</p>';
+}
+function pickFace(i){window._fname=(window._fn||[])[i];$('#face-in').click()}
+function pickFaceName(w,i){const n=((w==='b'?[S.big.a,S.big.b]:[S.win.name])[i]||'').trim();if(!n)return toast('Type a name first');window._fname=n;$('#face-in').click()}
+function setFace(inp){const f=inp.files[0],n=window._fname;if(!f||!n)return;const img=new Image();
+  img.onload=()=>{const c=document.createElement('canvas');c.width=400;c.height=500;cover(c.getContext('2d'),img,0,0,400,500);URL.revokeObjectURL(img.src);
+    try{const F=facesLib();F[fkey(n)]=c.toDataURL('image/jpeg',.85);localStorage.setItem('mu_faces',JSON.stringify(F));facesUI();bigFaces();winFaces();redraw()}catch(e){toast('Browser storage is full – try smaller images')}};
+  img.src=URL.createObjectURL(f);inp.value=''}
+
+/* ---------- big / winner / tabs ---------- */
+function tiles(w,names){const F=facesLib();return names.map((n,i)=>{n=(n||'').trim();const f=F[fkey(n)];return `<div class="ft" onclick="pickFaceName('${w}',${i})" title="Click to set image"><div class="fb" style="${f?`background-image:url('${f}')`:''}">${f?'':'<span>'+esc((n||'?').slice(0,2).toUpperCase())+'</span>'}</div><div class="fnm">${esc(n||'—')}</div></div>`}).join('')}
+function bigFaces(){$('#bfaces').innerHTML=tiles('b',[S.big.a,S.big.b])}
+function winFaces(){$('#wfaces').innerHTML=tiles('w',[S.win.name])}
+function setBig(k,v){S.big[k]=v;save();redraw()}
+function setWin(k,v){S.win[k]=v;save();redraw()}
+function syncFields(){const m={ba:S.big.a,bb:S.big.b,bl:S.big.l,wn:S.win.name,wo:S.win.opp,ws:S.win.score,wlb:S.win.label,wl:S.win.l};Object.keys(m).forEach(k=>$('#'+k).value=m[k]||'')}
+function fromRow(){const m=S.list[sel];if(!m)return toast('Add a matchup first');S.big.a=m.a;S.big.b=m.b;save();syncFields();bigFaces();redraw()}
+function swapBig(){[S.big.a,S.big.b]=[S.big.b,S.big.a];save();syncFields();bigFaces();redraw()}
+function winFrom(side){const m=S.list[sel];if(!m)return toast('Add a matchup first');S.win.name=side==='a'?m.a:m.b;S.win.opp=side==='a'?m.b:m.a;save();syncFields();winFaces();redraw()}
+function tabsUI(){
+  $('#tabs').innerHTML=[['cards','Matchup cards'],['big','Big card'],['win','Winner card']].map(([k,l])=>`<button class="${S.tab===k?'on':''}" onclick="setTab('${k}')">${l}</button>`).join('');
+  ['cards','big','win'].forEach(k=>$('#tab-'+k).hidden=S.tab!==k);
+  $('#layw').hidden=S.tab!=='cards';$('#dlall').hidden=S.tab!=='cards';
+}
+function setTab(k){S.tab=k;save();tabsUI();redraw()}
+
+/* ---------- ui ---------- */
+function set(k,v){S[k]=v;save();redraw()}
+function upd(i,k,v){S.list[i][k]=v;save();if(i===sel)redraw()}
+function pick(i){sel=i;document.querySelectorAll('.mrow').forEach((e,k)=>e.classList.toggle('on',k===i));redraw()}
+function addRow(a,b,l){S.list.push({a:a||'',b:b||'',l:l||''});sel=S.list.length-1;save();ui();const r=document.querySelectorAll('.mrow input');if(r.length)r[r.length-3].focus()}
+function delRow(i){S.list.splice(i,1);sel=Math.max(0,Math.min(sel,S.list.length-1));save();ui()}
+function bulkAdd(){const lines=$('#bulk').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);let n=0;
+  lines.forEach(l=>{const p=l.split(/\s+(?:vs\.?|v|x)\s+/i);if(p.length===2&&p[0]&&p[1]){S.list.push({a:p[0].trim(),b:p[1].trim(),l:''});n++}});
+  if(!n)return toast('Use the format: Name vs Name');
+  $('#bulk').value='';sel=S.list.length-n;save();ui();toast(n+' matchup'+(n>1?'s':'')+' added')}
+function allPairs(){const ns=[...new Set($('#pl').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean))];if(ns.length<2)return toast('Enter at least two names');
+  const n0=S.list.length;ns.forEach((a,i)=>ns.slice(i+1).forEach(b=>S.list.push({a,b,l:''})));
+  sel=n0;save();ui();toast((S.list.length-n0)+' pairings added')}
+function ui(){
+  applyTheme();tabsUI();syncFields();$('#th').value=S.theme;
+  $('#t').value=S.title;$('#s').value=S.sub;$('#f').value=S.footer;$('#lay').value=S.layout;$('#bgm').value=S.bg;
+  $('#list').innerHTML=S.list.length?S.list.map((m,i)=>`<div class="mrow ${i===sel?'on':''}" onclick="pick(${i})">
+    <input value="${esc(m.a)}" placeholder="Player 1" onfocus="pick(${i})" oninput="upd(${i},'a',this.value)" onchange="facesUI()">
+    <span class="vs">VS</span>
+    <input value="${esc(m.b)}" placeholder="Player 2" onfocus="pick(${i})" oninput="upd(${i},'b',this.value)" onchange="facesUI()">
+    <button class="x" title="Remove" onclick="event.stopPropagation();delRow(${i})">✕</button>
+    <input class="lab" value="${esc(m.l||'')}" placeholder="Round or note (single-matchup layouts only)" onfocus="pick(${i})" oninput="upd(${i},'l',this.value)"></div>`).join(''):'<p class="mut">No matchups yet.</p>';
+  facesUI();bigFaces();winFaces();redraw();
+}
+ui();
+</script>
+</body></html>
